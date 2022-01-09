@@ -114,3 +114,25 @@ console.log(textStrage.getItems());
 // になってしまわないようにあらかじめ入れておいた変数objを引数に渡す
 // objStrage.removeItem(obj)
 // console.log(objStrage.getItems()); 
+
+interface CourceGoal {
+  title: string;
+  description: string;
+  compileUntil: Date;
+}
+
+function createCourceGoal(title: string, description: string, date: Date
+  ): CourceGoal {
+    // Partial型はユーティリティとして組み込まれている
+    let courceGoal:Partial<CourceGoal> = {};
+    courceGoal.title = title;
+    courceGoal.description = description;
+    courceGoal.compileUntil = date;
+    return courceGoal as CourceGoal;
+}
+
+const names : Readonly<string[]> = ["Max","Anna"];
+
+// それぞれコンパイルエラー
+// names.push("Manu");
+// names.pop();
