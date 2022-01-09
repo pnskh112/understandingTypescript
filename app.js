@@ -4,6 +4,15 @@
 // Array<T>と出てきたらジェネリックの一つ
 // 例１）Array<string>（他の型はstring）
 // 例２）Array<number>（他の型はnumber）
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 // 下記のように書いてあった場合、
 // Genericでstringを渡すことができているので、array型に対して使えるsplit関数を使うことができる
 // const names: Array<string>  = [];
@@ -38,6 +47,8 @@ console.log(myMergedObj);
 // Property 'length' does not exist on type 'T'
 // 関数の戻り値を明確にするために戻り値の型をtupleにする
 // TはGenericなのでどんな型でもありうる。Lengthyの制約だけがある
+// 引数に曖昧さをもたせて限定しないようにしている
+// stringなのかarrayなのかを気にしない
 function countAndDescribe(element) {
     var descriptionText = "値がありません";
     if (element.length) {
@@ -46,3 +57,37 @@ function countAndDescribe(element) {
     return [element, descriptionText];
 }
 console.log(countAndDescribe(["Sports", "Cooking"]));
+// itemの型を指定できる
+// ただ、このクラス自体はitemの型を気にしていない
+// このクラスではitemの型が統一されていることだけを保証したい
+// 高い柔軟性がありながらTypescriptの型のサポートを得ることができるのがGenericsの全体的な概念
+var DataStrage = /** @class */ (function () {
+    function DataStrage() {
+        this.data = [];
+    }
+    DataStrage.prototype.addItem = function (item) {
+        this.data.push(item);
+    };
+    DataStrage.prototype.removeItem = function (item) {
+        this.data.splice(this.data.indexOf(item), 1);
+    };
+    // Typescriptがうまく推論してくれて、戻り値はTの配列になっている
+    DataStrage.prototype.getItems = function () {
+        return __spreadArray([], this.data, true);
+    };
+    return DataStrage;
+}());
+// 呼び出し側にstringを指定する
+var textStrage = new DataStrage();
+// Argument of type 'number' is not assignable to parameter of type 'string'.ts(2345)
+// textStrage.addItem(10);
+textStrage.addItem("Data1");
+textStrage.addItem("Data2");
+textStrage.removeItem("Data1");
+console.log(textStrage.getItems());
+var objStrage = new DataStrage();
+objStrage.addItem({ name: "Max" });
+objStrage.addItem({ name: "Manu" });
+// ...
+objStrage.removeItem({ name: "Max" });
+console.log(objStrage.getItems());

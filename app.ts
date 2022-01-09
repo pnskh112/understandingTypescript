@@ -62,9 +62,55 @@ function countAndDescribe<T extends Lengthy>(element: T):[T, string] {
 
 console.log(countAndDescribe(["Sports","Cooking"]));
 
-// extendsでUに制約をつける。UがTのkeyになっているということを制約で教えてあげる必要がある。
-function extractAndConvert<T extends object, U extends keyof T>(obj: T,key: U) {
-  return "Value:" + obj[key];
+// itemの型を指定できる
+// ただ、このクラス自体はitemの型を気にしていない
+// このクラスではitemの型が統一されていることだけを保証したい
+// 高い柔軟性がありながらTypescriptの型のサポートを得ることができるのがGenericsの全体的な概念
+// オブジェクトで動作させないためにプリミティブしか動作しないようにさせる
+class DataStrage<T extends string | number | boolean | RegExp>{
+  private data: T[] = [];
+
+  addItem(item: T) {
+    this.data.push(item);
+  }
+
+  removeItem(item: T) {
+    if(this.data.indexOf(item) === -1) {
+      return;
+    }
+    // これはプリミティブ型のものに対してはうまく動くが参照型のものに対してはうまく動かない
+    // なのでobject や arrayにはうまく動作しない
+    // この書き方では同じメモリアドレスのobjectを探すので、基本的には見つからない。
+    // そのためこれは最後の要素を削除してしまう
+    // これってもはやバグじゃね？
+    // なぜならindexOfは要素が見つからない時に-1を返すから
+    // そのため事前にif文をかます
+    this.data.splice(this.data.indexOf(item), 1);
+  }
+
+  // Typescriptがうまく推論してくれて、戻り値はTの配列になっている
+  getItems() {
+    return [...this.data];
+  }
 }
 
-extractAndConvert({"name": "Max"},"name");
+// 呼び出し側にstringを指定する
+const textStrage = new DataStrage<string>();
+
+// Argument of type 'number' is not assignable to parameter of type 'string'.ts(2345)
+// textStrage.addItem(10);
+textStrage.addItem("Data1");
+textStrage.addItem("Data2");
+textStrage.removeItem("Data1");
+console.log(textStrage.getItems());
+
+// const objStrage = new DataStrage<object>();
+// const obj = { name: "Max" }
+
+// objStrage.addItem(obj)
+// objStrage.addItem({name: "Manu"})
+
+// 呼び出し側で指定しているobjectはメモリ上はアドレスが異なる全く別な新しいobject
+// になってしまわないようにあらかじめ入れておいた変数objを引数に渡す
+// objStrage.removeItem(obj)
+// console.log(objStrage.getItems()); 
